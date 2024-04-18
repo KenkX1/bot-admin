@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Работник дорог",
+    "start_temp": "0",
+    "end_temp": "30",
+    "fallout": "True"
+  },
+  {
+    "name": "Работник",
+    "start_temp": "5",
+    "end_temp": "10",
+    "fallout": "True"
+  }
+]
