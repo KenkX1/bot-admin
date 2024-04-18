@@ -10,5 +10,11 @@
     "start_temp": "5",
     "end_temp": "10",
     "fallout": "True"
+  },
+  {
+    "name": "Дворник",
+    "start_temp": "1",
+    "end_temp": "10",
+    "fallout": "False"
   }
 ]
