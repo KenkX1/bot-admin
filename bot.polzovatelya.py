@@ -5,6 +5,22 @@ import json
 
 token = "7116003817:AAGqDAV8Ph_7keIni1ofhOSkiKOStQaHV_o"
 
+# Работа с графиком:
+#
+# 1. Выбрать тип работ.
+# 2. Указать дату.
+# 3. После выбора даты показать список часов, доступных для работы, пример:
+# 08.00 - 09.00
+# 13.00 - 14.00
+# 14.00 - 15.00
+# 17.00 - 18.00
+# 3 продолжение: и просим пользователя указать время начала работ (пишем часы или выбираем)
+# 4. Просим указать время окончания работ (пишем часы или выбираем).
+#
+# 3 и 4: если вдруг пишет пользователь часы, надо проверить а доступно ли время или нет.
+#
+# 5. Выбираем ответственного за работу.
+
 bot = telebot.TeleBot(token)
 
 access_key = 'a205a92c-c6c2-4486-b4e6-d7e301c5e4b4'
@@ -83,6 +99,7 @@ def add_fallout(message):
                                          callback_data='False')
     keyboard.add(button1, button2)
     bot.send_message(message.from_user.id, text='Возможны ли осадки при проведение данных работ?', reply_markup=keyboard)
+
 def add_worker(message):
     worker.append(message.text)
     bot.send_message(message.from_user.id, text='Введите должность сотрудника!')
@@ -113,6 +130,9 @@ def add_tg(message):
         }
     )
     json.dump(data, file, ensure_ascii=False)
+    text = ''
+    text += 'Сотрудник добавлен!' + '\n' + 'Предоставляю вам информацию о том, что вы добавили!' + '\n' + 'Ф.И.О сотрудника: ' + worker[0] + '\n' + 'Должность: ' + post[0] + '\n' + 'Телеграмм сотрудника:' + tg[0]
+    bot.send_message(message.from_user.id, text)
     file.close()
     worker = []
     post = []
@@ -209,6 +229,11 @@ def callback_worker(call):
     global workkk
     global workerr
     global workerr1
+    global name
+    global start_temp
+    global end_temp
+    global fallout
+    global perevod
     if call.data == 'Добавление работы':
         bot.send_message(call.from_user.id, text='Напишите название работы!')
         bot.register_next_step_handler(call.message, add_work)
@@ -229,7 +254,7 @@ def callback_worker(call):
     for i in range(len(workkk)):
         if call.data == workkk[i]:
             worker1.append(workkk[i])
-            bot.send_message(call.from_user.id, text='Укажите дату проведения работ в формате dd.mm.yyyy!')
+            bot.send_message(call.from_user.id, text='Укажите дату проведения работ в формате dd.mm.yyyy!(Например: 11.01.2024')
             bot.register_next_step_handler(call.message, datee)
     for i in range(len(workerr)):
         if call.data == workerr[i]:
@@ -238,9 +263,21 @@ def callback_worker(call):
             break
     if call.data == 'True':
         fallout.append('True')
+        if fallout[0] == 'True':
+            perevod = 'Да'
+        text = ''
+        text += "Работа добавлена!" + '\n' + 'Предоставляю вам информацию о том, что вы добавили!'+ '\n' + "Работа:" + name[0] + '\n' + "Минимальная температура: " + start_temp[0] +'\n' + "Максимальная температура: " + end_temp[0] +'\n'+ "Возможны ли осадки: " + perevod
+        bot.send_message(call.from_user.id, text)
+        perevod = []
         add_works()
     if call.data == 'False':
         fallout.append('False')
+        if fallout[0] == 'False':
+            perevod = 'Нет'
+        text = ''
+        text += "Работа добавлена!" + '\n' + 'Предоставляю вам информацию о том, что вы добавили!'+ '\n' + "Работа:" + name[0] + '\n' + "Минимальная температура: " + start_temp[0] +'\n' + "Максимальная температура: " + end_temp[0] +'\n'+ "Возможны ли осадки: " + perevod
+        bot.send_message(call.from_user.id, text)
+        perevod = []
         add_works()
 bot.polling(non_stop=True, interval=0)
 
