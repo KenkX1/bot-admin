@@ -33,6 +33,7 @@ times = ["8","9","10","11","12","13","14","15","16","17","18","19","20","21"]
 zan_time = []
 cvobod_time = ''
 cvobod_time1 = []
+cvobod_time2 = []
 # for i in range(7):
 #     date = pogod['forecasts'][i]['date']
 #     data.append(date)
@@ -55,7 +56,8 @@ workkk = []
 workerr = []
 workerr1 = []
 fallout = []
-
+nach_rabot = []
+kon_rabot = []
 def add_works():
     global name
     global start_temp
@@ -174,10 +176,11 @@ def grafik(call_data):
         data = json.load(file)
     file.close()
     for i in range(8, 22):
-        if str(i) in data[worker1[0]][datt[0]]:
+        if str(i) in data['Работа'][datt[0]]:
             zan_time.append(str(i))
         if str(i) not in zan_time:
             cvobod_time1.append(str(i) + ':00')
+            cvobod_time2.append(str(i) + ':00')
             cvobod_time += str(i) + ":00" + "-" + str(i + 1) + ':00' + '\n'
     text = 'Список часов доступных для работы:' + '\n' + cvobod_time
     bot.send_message(call_data.chat.id, text=text)
@@ -216,6 +219,52 @@ def grafik(call_data):
     #     )
     # json.dump(data, file, ensure_ascii=False)
     # file.close()
+def kon_time(call_data):
+    keyboard = types.InlineKeyboardMarkup()
+    for i in range(len(cvobod_time2)):
+        button = types.InlineKeyboardButton(text=cvobod_time1[i], callback_data='endtime_'+cvobod_time1[i])
+        keyboard.add(button)
+    bot.send_message(call_data.message.chat.id, text="Выберите время конца работы:", reply_markup=keyboard)
+def otvetsv(call_data):
+    keyboard = types.InlineKeyboardMarkup()
+    file = open("worker.json", 'r', encoding="utf-8")
+    data = json.load(file)
+    for i in range(len(data)):
+        button = types.InlineKeyboardButton(text=data[i]['worker'], callback_data=data[i]['worker'])
+        workerr.append(data[i]['worker'])
+        keyboard.add(button)
+    file.close()
+    bot.send_message(call_data.from_user.id, text='Выберите ответственного за проведение данного вида работ!', reply_markup=keyboard)
+def naach(message):
+    global nach_rabot
+    global datt
+    global worker1
+    nach_rabot.append(message.text)
+    if nach_rabot[0] in cvobod_time1:
+        bot.send_message(message.from_user.id, text="Выберите время конца работы:(Например,23:00)")
+        bot.register_next_step_handler(message, kooon)
+    else:
+        bot.send_message(message.from_user.id, text="Этого времени нет или время уже занято в этом время!")
+        nach_rabot = []
+        datt = []
+        worker1 = []
+def kooon(message):
+    global kon_rabot
+    global nach_rabot
+    global datt
+    global worker1
+    kon_rabot.append(message.text)
+    if kon_rabot[0] in cvobod_time1 and kon_rabot != nach_rabot[0]:
+        otvetsv(message)
+    else:
+        bot.send_message(message.from_user.id, text="Этого времени нет или время уже занято в этом время!")
+        nach_rabot = []
+        datt = []
+        worker1 = []
+        kon_rabot = []
+def izm_graf(message):
+    text = 'Предоставляю информацию о ваших изменениях:' + '\n' + 'Работа: ' + worker1[0] + '\n' + 'Дата: ' + datt[0] + '\n' + 'Время работ: ' + nach_rabot[0] + '-' + kon_rabot[0]+ '\n' + 'Ответственный сотрудник: ' + workerr1[0]
+    bot.send_message(message.from_user.id, text)
 
 # Получение текстовых сообщений от бота
 @bot.message_handler(content_types=['text'])
@@ -286,7 +335,7 @@ def callback_worker(call):
     for i in range(len(workerr)):
         if call.data == workerr[i]:
             workerr1.append(workerr[i])
-            grafik(call.data)
+            izm_graf(call)
             break
     if call.data == 'True':
         fallout.append('True')
@@ -311,6 +360,22 @@ def callback_worker(call):
         for i in range(len(cvobod_time1)):
             button = types.InlineKeyboardButton(text=cvobod_time1[i], callback_data=cvobod_time1[i])
             keyboard.add(button)
-        bot.send_message(call.from_user.id,"Выберите время начала работы:",reply_markup=keyboard)
+        bot.send_message(call.from_user.id,text="Выберите время начала работы:",reply_markup=keyboard)
+
+    if call.data.startswith('endtime'):
+        time = call.data.split('_')[1]
+        for i in range(len(cvobod_time1)):
+            if time == cvobod_time1[i]:
+                kon_rabot.append(time)
+                break
+        otvetsv(call)
+    for i in range(len(cvobod_time1)):
+        if call.data == cvobod_time1[i]:
+            nach_rabot.append(cvobod_time1[i])
+            kon_time(call)
+            break
+    if call.data == 'Вручную':
+        bot.send_message(call.from_user.id, text="Выберите время начала работы:(Например,11:00)")
+        bot.register_next_step_handler(call.message, naach)
 bot.polling(non_stop=True, interval=0)
 
