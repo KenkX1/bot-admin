@@ -166,6 +166,7 @@ def datee(message):
     # file.close()
     # bot.send_message(message.from_user.id, text='Выберите ответственного за проведение данного вида работ!', reply_markup=keyboard)
 def grafik(call_data):
+
     global datt
     global worker1
     global workerr1
