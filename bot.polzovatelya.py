@@ -21,6 +21,9 @@ token = "7116003817:AAGqDAV8Ph_7keIni1ofhOSkiKOStQaHV_o"
 #
 # 5. Выбираем ответственного за работу.
 
+#1.После выбора даты дать выбор действия изменение или добавление
+#2.в случае изменнения дополнительно спрашиваем, что нужно изменить
+
 bot = telebot.TeleBot(token)
 
 access_key = 'a205a92c-c6c2-4486-b4e6-d7e301c5e4b4'
@@ -156,22 +159,19 @@ def datee(message):
     global datt
     datt.append(message.text)
     grafik(message)
-    # keyboard = types.InlineKeyboardMarkup()
-    # file = open("worker.json", 'r', encoding="utf-8")
-    # data = json.load(file)
-    # for i in range(len(data)):
-    #     button = types.InlineKeyboardButton(text=data[i]['worker'], callback_data=data[i]['worker'])
-    #     workerr.append(data[i]['worker'])
-    #     keyboard.add(button)
-    # file.close()
-    # bot.send_message(message.from_user.id, text='Выберите ответственного за проведение данного вида работ!', reply_markup=keyboard)
 def grafik(call_data):
 
     global datt
     global worker1
     global workerr1
     global cvobod_time
+    global cvobod_time1
+    global cvobod_time2
     global zan_time
+    cvobod_time1 = []
+    cvobod_time2 = []
+    cvobod_time = ""
+    zan_time = []
     file = open("grafik.json",'r',encoding="utf-8")
     if len(file.readlines()) == 0:
         data = []
@@ -271,8 +271,18 @@ def kooon(message):
         worker1 = []
         kon_rabot = []
 def izm_graf(message):
+    global worker1
+    global datt
+    global nach_rabot
+    global kon_rabot
+    global workerr1
     text = 'Предоставляю информацию о ваших изменениях:' + '\n' + 'Работа: ' + worker1[0] + '\n' + 'Дата: ' + datt[0] + '\n' + 'Время работ: ' + nach_rabot[0] + '-' + kon_rabot[0]+ '\n' + 'Ответственный сотрудник: ' + workerr1[0]
     bot.send_message(message.from_user.id, text)
+    worker1 = []
+    datt = []
+    nach_rabot = []
+    kon_rabot = []
+    workerr1 = []
 
 # Получение текстовых сообщений от бота
 @bot.message_handler(content_types=['text'])
@@ -326,6 +336,13 @@ def callback_worker(call):
         bot.send_message(call.from_user.id, text='Введите Ф.И.О сотрудника!')
         bot.register_next_step_handler(call.message, add_worker)
     if call.data == 'График':
+        keyboard = types.InlineKeyboardMarkup()
+        button1 = types.InlineKeyboardButton(text='Добавление', callback_data='Добавление')
+        button2 = types.InlineKeyboardButton(text='Изменение графика',
+                                             callback_data='Изменение')
+        keyboard.add(button1, button2)
+        bot.send_message(call.from_user.id, text='Выберите действие!', reply_markup=keyboard)
+    if call.data == 'Добавление':
         vse_rabot_graf = []
         keyboard = types.InlineKeyboardMarkup()
         file = open("grafik.json",'r', encoding="utf-8")
@@ -336,6 +353,21 @@ def callback_worker(call):
             keyboard.add(button)
         file.close()
         bot.send_message(call.from_user.id, text='Выберите вид проводимых работ!', reply_markup=keyboard)
+    if call.data =='Изменение':
+        keyboard = types.InlineKeyboardMarkup()
+        # Создаем кнопки с категорией товара
+        button1 = types.InlineKeyboardButton(text='Вид проводимых работ', callback_data='Вид')
+        button2 = types.InlineKeyboardButton(text='Дату',
+                                             callback_data='Дата')
+        button3 = types.InlineKeyboardButton(text='Время', callback_data='Время')
+        button4 = types.InlineKeyboardButton(text='Работу', callback_data='Работа')
+        button5 = types.InlineKeyboardButton(text='Ответственного сотрудника', callback_data='Сотрудник')
+        button6 = types.InlineKeyboardButton(text='Изменить всё', callback_data='Всё')
+        # Добавляем кнопки для клавиатуры
+        keyboard.add(button1, button2, button3, button4, button5, button6)
+        # Отправляем ответное сообщение
+        bot.send_message(call.from_user.id, text='Выберите вид изменения!', reply_markup=keyboard)
+
     for i in range(len(vse_rabot_graf)):
         if call.data == vse_rabot_graf[i]:
             worker1.append(vse_rabot_graf[i])
