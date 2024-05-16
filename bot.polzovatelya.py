@@ -37,9 +37,6 @@ zan_time = []
 cvobod_time = ''
 cvobod_time1 = []
 cvobod_time2 = []
-# for i in range(7):
-#     date = pogod['forecasts'][i]['date']
-#     data.append(date)
 
 active_day = None
 active_nach_time = None
@@ -63,6 +60,7 @@ nach_rabot = []
 kon_rabot = []
 vid_rabot_graf = []
 vse_rabot_graf = []
+worker11 = []
 def add_works():
     global name
     global start_temp
@@ -160,7 +158,6 @@ def datee(message):
     datt.append(message.text)
     grafik(message)
 def grafik(call_data):
-
     global datt
     global worker1
     global workerr1
@@ -276,13 +273,34 @@ def izm_graf(message):
     global nach_rabot
     global kon_rabot
     global workerr1
-    text = 'Предоставляю информацию о ваших изменениях:' + '\n' + 'Работа: ' + worker1[0] + '\n' + 'Дата: ' + datt[0] + '\n' + 'Время работ: ' + nach_rabot[0] + '-' + kon_rabot[0]+ '\n' + 'Ответственный сотрудник: ' + workerr1[0]
+    global worker11
+    text = 'Предоставляю информацию о ваших изменениях:' + '\n' + 'Вид проводимых работ: ' + worker1[0] + '\n' + "Работа:" + worker11[0] +"\n" + 'Дата: ' + datt[0] + '\n' + 'Время работ: ' + nach_rabot[0] + '-' + kon_rabot[0]+ '\n' + 'Ответственный сотрудник: ' + workerr1[0]
     bot.send_message(message.from_user.id, text)
+
+    file = open("grafik.json", 'r', encoding="utf-8")
+    grafik = json.load(file)
+    file.close()
+    file = open("grafik.json", 'w', encoding="utf-8")
+    nach_hour = int(nach_rabot[0].split(':')[0])
+    kon_hour = int(kon_rabot[0].split(':')[0])
+    if datt[0] not in grafik[worker1[0]]:
+        grafik[worker1[0]][datt[0]] = {}
+    for hour in range(nach_hour, kon_hour + 1):
+        grafik[worker1[0]][datt[0]][str(hour)] = [
+            {
+                "date": datt[0],
+                "work": worker11[0],
+                "worker": workerr1[0]
+            }
+        ]
+    json.dump(grafik, file, ensure_ascii=False)
+    file.close()
     worker1 = []
     datt = []
     nach_rabot = []
     kon_rabot = []
     workerr1 = []
+    worker11 = []
 
 # Получение текстовых сообщений от бота
 @bot.message_handler(content_types=['text'])
@@ -329,6 +347,7 @@ def callback_worker(call):
     global fallout
     global perevod
     global vse_rabot_graf
+    global worker11
     if call.data == 'Добавление работы':
         bot.send_message(call.from_user.id, text='Напишите название работы!')
         bot.register_next_step_handler(call.message, add_work)
@@ -355,7 +374,6 @@ def callback_worker(call):
         bot.send_message(call.from_user.id, text='Выберите вид проводимых работ!', reply_markup=keyboard)
     if call.data =='Изменение':
         keyboard = types.InlineKeyboardMarkup()
-        # Создаем кнопки с категорией товара
         button1 = types.InlineKeyboardButton(text='Вид проводимых работ', callback_data='Вид')
         button2 = types.InlineKeyboardButton(text='Дату',
                                              callback_data='Дата')
@@ -363,32 +381,27 @@ def callback_worker(call):
         button4 = types.InlineKeyboardButton(text='Работу', callback_data='Работа')
         button5 = types.InlineKeyboardButton(text='Ответственного сотрудника', callback_data='Сотрудник')
         button6 = types.InlineKeyboardButton(text='Изменить всё', callback_data='Всё')
-        # Добавляем кнопки для клавиатуры
         keyboard.add(button1, button2, button3, button4, button5, button6)
-        # Отправляем ответное сообщение
         bot.send_message(call.from_user.id, text='Выберите вид изменения!', reply_markup=keyboard)
 
     for i in range(len(vse_rabot_graf)):
         if call.data == vse_rabot_graf[i]:
             worker1.append(vse_rabot_graf[i])
-            bot.send_message(call.from_user.id,
-                             text='Укажите дату проведения работ в формате yyyy-mm-dd!(Например: 2024-01-23)')
+            workkk = []
+            keyboard = types.InlineKeyboardMarkup()
+            file = open("work-types.json", 'r', encoding="utf-8")
+            data = json.load(file)
+            for i in range(len(data)):
+                button = types.InlineKeyboardButton(text=data[i]['name'], callback_data=data[i]['name'])
+                workkk.append(data[i]['name'])
+                keyboard.add(button)
+            file.close()
+            bot.send_message(call.from_user.id, text='Выберите работу!', reply_markup=keyboard)
+    for i in range(len(workkk)):
+        if call.data == workkk[i]:
+            worker11.append(workkk[i])
+            bot.send_message(call.from_user.id, text='Укажите дату проведения работ в формате yyyy-mm-dd!(Например: 2024-01-23)')
             bot.register_next_step_handler(call.message, datee)
-        # workkk = []
-        # keyboard = types.InlineKeyboardMarkup()
-        # file = open("work-types.json", 'r', encoding="utf-8")
-        # data = json.load(file)
-        # for i in range(len(data)):
-        #     button = types.InlineKeyboardButton(text=data[i]['name'], callback_data=data[i]['name'])
-        #     workkk.append(data[i]['name'])
-        #     keyboard.add(button)
-        # file.close()
-        # bot.send_message(call.from_user.id, text='Выберите вид проводимых работ!', reply_markup=keyboard)
-    # for i in range(len(workkk)):
-    #     if call.data == workkk[i]:
-    #         worker1.append(workkk[i])
-    #         bot.send_message(call.from_user.id, text='Укажите дату проведения работ в формате yyyy-mm-dd!(Например: 2024-01-23)')
-    #         bot.register_next_step_handler(call.message, datee)
     for i in range(len(workerr)):
         if call.data == workerr[i]:
             workerr1.append(workerr[i])
@@ -435,4 +448,3 @@ def callback_worker(call):
         bot.send_message(call.from_user.id, text="Выберите время начала работы:(Например,11:00)")
         bot.register_next_step_handler(call.message, naach)
 bot.polling(non_stop=True, interval=0)
-
