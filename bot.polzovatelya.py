@@ -61,6 +61,8 @@ kon_rabot = []
 vid_rabot_graf = []
 vse_rabot_graf = []
 worker11 = []
+data_izm1 = []
+vse = []
 def add_works():
     global name
     global start_temp
@@ -274,7 +276,7 @@ def izm_graf(message):
     global kon_rabot
     global workerr1
     global worker11
-    text = 'Предоставляю информацию о ваших изменениях:' + '\n' + 'Вид проводимых работ: ' + worker1[0] + '\n' + "Работа:" + worker11[0] +"\n" + 'Дата: ' + datt[0] + '\n' + 'Время работ: ' + nach_rabot[0] + '-' + kon_rabot[0]+ '\n' + 'Ответственный сотрудник: ' + workerr1[0]
+    text = 'Предоставляю информацию о ваших изменениях:' + '\n' + 'Вид проводимых работ: ' + worker1[0] + '\n' + "Работа: " + worker11[0] +"\n" + 'Дата: ' + datt[0] + '\n' + 'Время работ: ' + nach_rabot[0] + '-' + kon_rabot[0]+ '\n' + 'Ответственный сотрудник: ' + workerr1[0]
     bot.send_message(message.from_user.id, text)
 
     file = open("grafik.json", 'r', encoding="utf-8")
@@ -301,6 +303,13 @@ def izm_graf(message):
     kon_rabot = []
     workerr1 = []
     worker11 = []
+def data_izm1(message):
+    global worker1
+    global data_izm1
+    data_izm1.append(message.text)
+    file = open("grafik.json", 'r', encoding="utf-8")
+    grafik = json.load(file)
+    vse.append(grafik[worker1[0]][data_izm1[0]])
 
 # Получение текстовых сообщений от бота
 @bot.message_handler(content_types=['text'])
@@ -357,8 +366,8 @@ def callback_worker(call):
     if call.data == 'График':
         keyboard = types.InlineKeyboardMarkup()
         button1 = types.InlineKeyboardButton(text='Добавление', callback_data='Добавление')
-        button2 = types.InlineKeyboardButton(text='Изменение графика',
-                                             callback_data='Изменение')
+        button2 = types.InlineKeyboardButton(text='Перенести работу',
+                                             callback_data='Перенести работу')
         keyboard.add(button1, button2)
         bot.send_message(call.from_user.id, text='Выберите действие!', reply_markup=keyboard)
     if call.data == 'Добавление':
@@ -372,18 +381,28 @@ def callback_worker(call):
             keyboard.add(button)
         file.close()
         bot.send_message(call.from_user.id, text='Выберите вид проводимых работ!', reply_markup=keyboard)
-    if call.data =='Изменение':
+    if call.data =='Перенести работу':
+        vse_rabot_graf = []
         keyboard = types.InlineKeyboardMarkup()
-        button1 = types.InlineKeyboardButton(text='Вид проводимых работ', callback_data='Вид')
-        button2 = types.InlineKeyboardButton(text='Дату',
-                                             callback_data='Дата')
-        button3 = types.InlineKeyboardButton(text='Время', callback_data='Время')
-        button4 = types.InlineKeyboardButton(text='Работу', callback_data='Работа')
-        button5 = types.InlineKeyboardButton(text='Ответственного сотрудника', callback_data='Сотрудник')
-        button6 = types.InlineKeyboardButton(text='Изменить всё', callback_data='Всё')
-        keyboard.add(button1, button2, button3, button4, button5, button6)
-        bot.send_message(call.from_user.id, text='Выберите вид изменения!', reply_markup=keyboard)
+        file = open("grafik.json", 'r', encoding="utf-8")
+        data = json.load(file)
+        vse_rabot_graf = list(data.keys())
+        for i in range(len(vse_rabot_graf)):
+            button = types.InlineKeyboardButton(text=vse_rabot_graf[i], callback_data=vse_rabot_graf[i] + "|")
+            keyboard.add(button)
+        file.close()
+        bot.send_message(call.from_user.id, text='Выберите вид проводимых работ!', reply_markup=keyboard)
 
+        # 1. Сделать выбор вида работ
+        # 2. Укажите дату, работу которой надо перенести
+        # 3. Показать список работ (выбранная дата и список пронумерованный из: работник, работа, время) и предоставить кнопки с цифрами для выбора.
+        # в callback записать: date|work|worker
+
+    for i in range(len(vse_rabot_graf)):
+        if call.data == vse_rabot_graf[i] + "|":
+            worker1.append(vse_rabot_graf[i])
+            bot.send_message(call.from_user.id, text='Выберите дату в формате yyyy-mm-dd(Например: 11:00).')
+            bot.register_next_step_handler(call.message, data_izm1)
     for i in range(len(vse_rabot_graf)):
         if call.data == vse_rabot_graf[i]:
             worker1.append(vse_rabot_graf[i])
