@@ -63,6 +63,12 @@ vse_rabot_graf = []
 worker11 = []
 data_izm1 = []
 vse = []
+inf = []
+ob = []
+workw = []
+workerw = []
+nach_vrem = []
+kon_vrem = []
 def add_works():
     global name
     global start_temp
@@ -303,13 +309,79 @@ def izm_graf(message):
     kon_rabot = []
     workerr1 = []
     worker11 = []
-def data_izm1(message):
+def data_izm11(message):
     global worker1
     global data_izm1
+    global inf
+    global workerr1
+    global worker11
+    global ob
+    global workw
+    global workerw
+    global nach_vrem
+    workerr1 = []
+    worker11 = []
+    ob = []
+    text = ''
+    hours = []
     data_izm1.append(message.text)
     file = open("grafik.json", 'r', encoding="utf-8")
     grafik = json.load(file)
-    vse.append(grafik[worker1[0]][data_izm1[0]])
+    works = {
+
+    }
+    hours.append(grafik[worker1[0]][data_izm1[0]])
+    hours = hours[0]
+    for hour in hours:
+        _hour = int(hour)
+        work = hours[hour][0]['worker'] + '|' + hours[hour][0]['work']
+
+        if work not in works:
+            works[work] = []
+
+        if len(works[work]) == 0:
+            works[work].append([_hour])
+        else:
+            isAdded = False
+
+            for j in works[work]:
+                if j[-1] + 1 == _hour:
+                    j.append(_hour)
+                    isAdded = True
+
+            if not isAdded:
+                works[work].append([_hour])
+    inf = list(works.keys())
+    # for i in range(len(inf)):
+    #     if len(works[inf[i]]) > 1:
+    #         for j in range(len(works[inf[i]])):
+    #             nach_vrem.append(works[inf[i]][j][0])
+    #             kon_vrem.append(works[inf[i]][j][-1])
+    #     else:
+    #         nach_vrem.append(works[inf[i]][0][0])
+    #         kon_vrem.append(works[inf[i]][0][-1])
+    for i in range(len(inf)):
+        if len(works[inf[i]]) > 1:
+            for j in range(len(works[inf[i]])):
+                nach_vrem.append(works[inf[i]][j][0])
+                kon_vrem.append(works[inf[i]][j][-1])
+                ob = inf[i].split('|')
+                workerw = ob[0]
+                workw = ob[1]
+                text += str(j + 1) + '.' + "Работа: " + workw + '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(
+                    nach_vrem[j]) + ':00' + "-" + str(kon_vrem[j]) + ':00' + "\n\n"
+            workerr1.append(workerw)
+            worker11.append(workw)
+        else:
+            nach_vrem.append(works[inf[i]][0][0])
+            kon_vrem.append(works[inf[i]][0][-1])
+            ob = inf[i].split('|')
+            workerw = ob[0]
+            workw = ob[1]
+            workerr1.append(workerw)
+            worker11.append(workw)
+            text += str(j+2) + '.' + "Работа: " + workw +  '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(nach_vrem[i]) + ':00' + "-" + str(kon_vrem[i]) + ':00' + "\n\n"
+    print(text)
 
 # Получение текстовых сообщений от бота
 @bot.message_handler(content_types=['text'])
@@ -402,8 +474,8 @@ def callback_worker(call):
     for i in range(len(vse_rabot_graf)):
         if call.data == vse_rabot_graf[i] + "|":
             worker1.append(vse_rabot_graf[i])
-            bot.send_message(call.from_user.id, text='Выберите дату в формате yyyy-mm-dd(Например: 11:00).')
-            bot.register_next_step_handler(call.message, data_izm1)
+            bot.send_message(call.from_user.id, text='Выберите дату в формате yyyy-mm-dd(Например: 2024-05-16).')
+            bot.register_next_step_handler(call.message, data_izm11)
     for i in range(len(vse_rabot_graf)):
         if call.data == vse_rabot_graf[i]:
             worker1.append(vse_rabot_graf[i])
