@@ -620,6 +620,7 @@ def callback_worker(call):
             for i in range(len(data)):
                 button = types.InlineKeyboardButton(text=data[i]['name'], callback_data=data[i]['name'])
                 workkk.append(data[i]['name'])
+
                 keyboard.add(button)
             file.close()
             bot.send_message(call.from_user.id, text='Выберите работу!', reply_markup=keyboard)
