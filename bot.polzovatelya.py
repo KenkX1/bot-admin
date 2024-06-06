@@ -69,6 +69,14 @@ workw = []
 workerw = []
 nach_vrem = []
 kon_vrem = []
+knopki = []
+vib_knop = []
+vib_rabot = []
+vib_sot = []
+vib_nach = []
+vib_kon = []
+new_date = []
+jk = []
 def add_works():
     global name
     global start_temp
@@ -184,17 +192,27 @@ def grafik(call_data):
         file.seek(0)
         data = json.load(file)
     file.close()
+    file = open("grafik.json","r",encoding="utf-8")
     for i in range(8, 22):
-        # print(data[worker1[0][datt[0]]])
         if datt[0] not in data[str(worker1[0])]:
             zan_time = zan_time
-        elif str(i) in data[str(worker1[0])][datt[0]]:
+        elif str(i) in data[str(worker1[0])][str(datt[0])] and (str(i) >= data[str(worker1[0])][str(datt[0])][str(i)][0]["start"] or str(i) < data[str(worker1[0])][str(datt[0])][str(i)][0]['end']):
             zan_time.append(str(i))
+    print(zan_time)
+    file.close()
+
+    # for i in range(8, 22):
+        # print(data[worker1[0][datt[0]]])
+        # if datt[0] not in data[str(worker1[0])]:
+        #     zan_time = zan_time
+        # elif str(i) in data[str(worker1[0])][datt[0]]:
+        #     zan_time.append(str(i))
     for i in range(8,22):
         if str(i) not in zan_time:
             cvobod_time1.append(str(i) + ':00')
             cvobod_time2.append(str(i) + ':00')
             cvobod_time += str(i) + ":00" + "-" + str(i + 1) + ':00' + '\n'
+    print(cvobod_time2)
     text = 'Список часов доступных для работы:' + '\n' + cvobod_time
     bot.send_message(call_data.chat.id, text=text)
     keyboard = types.InlineKeyboardMarkup()
@@ -234,9 +252,13 @@ def grafik(call_data):
     # file.close()
 def kon_time(call_data):
     keyboard = types.InlineKeyboardMarkup()
-    for i in range(len(cvobod_time2)):
-        button = types.InlineKeyboardButton(text=cvobod_time1[i], callback_data='endtime_'+cvobod_time1[i])
-        keyboard.add(button)
+    print(int(nach_rabot[0].split(':')[0]))
+    print(int(cvobod_time2[-1].split(':')[0]))
+    print(cvobod_time2)
+    for i in range(int(nach_rabot[0].split(':')[0]),int(cvobod_time2[-1].split(':')[0]) + 1):
+        if str(i) not in zan_time:
+            button = types.InlineKeyboardButton(text= str(i) + ":00", callback_data='endtime_'+ str(i) + ":00")
+            keyboard.add(button)
     bot.send_message(call_data.message.chat.id, text="Выберите время конца работы:", reply_markup=keyboard)
 def otvetsv(call_data):
     keyboard = types.InlineKeyboardMarkup()
@@ -298,7 +320,9 @@ def izm_graf(message):
             {
                 "date": datt[0],
                 "work": worker11[0],
-                "worker": workerr1[0]
+                "worker": workerr1[0],
+                "start": str(nach_hour),
+                "end": str(kon_hour)
             }
         ]
     json.dump(grafik, file, ensure_ascii=False)
@@ -319,8 +343,10 @@ def data_izm11(message):
     global workw
     global workerw
     global nach_vrem
+    global jk
     workerr1 = []
     worker11 = []
+
     ob = []
     text = ''
     hours = []
@@ -360,6 +386,7 @@ def data_izm11(message):
     #     else:
     #         nach_vrem.append(works[inf[i]][0][0])
     #         kon_vrem.append(works[inf[i]][0][-1])
+    print(works)
     for i in range(len(inf)):
         if len(works[inf[i]]) > 1:
             for j in range(len(works[inf[i]])):
@@ -368,10 +395,13 @@ def data_izm11(message):
                 ob = inf[i].split('|')
                 workerw = ob[0]
                 workw = ob[1]
-                text += str(j + 1) + '.' + "Работа: " + workw + '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(
-                    nach_vrem[j]) + ':00' + "-" + str(kon_vrem[j]) + ':00' + "\n\n"
-            workerr1.append(workerw)
-            worker11.append(workw)
+                text += str(i + j + 1) + '.' + "Работа: " + workw + '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(
+                    nach_vrem[j + i]) + ':00' + "-" + str(kon_vrem[j + i]) + ':00' + "\n\n"
+                knopki.append(str(i + j + 1))
+                workerr1.append(workerw)
+                worker11.append(workw)
+                jk.append(j)
+
         else:
             nach_vrem.append(works[inf[i]][0][0])
             kon_vrem.append(works[inf[i]][0][-1])
@@ -380,9 +410,105 @@ def data_izm11(message):
             workw = ob[1]
             workerr1.append(workerw)
             worker11.append(workw)
-            text += str(j+2) + '.' + "Работа: " + workw +  '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(nach_vrem[i]) + ':00' + "-" + str(kon_vrem[i]) + ':00' + "\n\n"
-    print(text)
+            if len(knopki) == 0:
+                knopki.append(str(i + 1))
+                text += str(i + 1) + '.' + "Работа: " + workw + '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(
+                    nach_vrem[i]) + ':00' + "-" + str(kon_vrem[i]) + ':00' + "\n\n"
+            # if len(jk) == 0:
+            #     knopki.append(str(i + 1))
+            #     text += str(i + 1) + '.' + "Работа: " + workw +  '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(nach_vrem[i]) + ':00' + "-" + str(kon_vrem[i]) + ':00' + "\n\n"
+            elif len(knopki) != 0 and len(jk) != 0:
+                a = int(knopki[-1]) + 1
+                knopki.append(a)
+                text += str(a) + '.' + "Работа: " + workw + '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(
+                    nach_vrem[i + j]) + ':00' + "-" + str(kon_vrem[i + j]) + ':00' + "\n\n"
+            elif len(knopki) != 0 and len(jk) == 0:
+                a = int(knopki[-1]) + 1
+                knopki.append(a)
+                text += str(a) + '.' + "Работа: " + workw + '\n' + "Сотрудник: " + workerw + "\n" + 'Время: ' + str(
+                    nach_vrem[i]) + ':00' + "-" + str(kon_vrem[i]) + ':00' + "\n\n"
+    bot.send_message(message.from_user.id, text)
+    keyboard = types.InlineKeyboardMarkup()
+    for i in range(len(knopki)):
+        button = types.InlineKeyboardButton(text=knopki[i], callback_data=knopki[i])
+        keyboard.add(button)
+    bot.send_message(message.from_user.id, text='Выберите цифру, которая вам нужна!',
+                     reply_markup=keyboard)
 
+def izm14(message):
+    global data_izm1
+    global vib_rabot
+    global vib_sot
+    global vib_nach
+    global vib_kon
+    global vib_knop
+    global worker11
+    global workerr1
+    global knopki
+    global worker1
+    global nach_vrem
+    global kon_vrem
+    b = int(vib_knop[0]) - 1
+    vib_rabot = worker11[b]
+    vib_sot = workerr1[b]
+    vib_nach = str(nach_vrem[b])
+    vib_kon = str(kon_vrem[b])
+    text = "Вы выбрали:" + "\n" + 'Работа: ' + vib_rabot + "\n" + "Сотрудник: " + vib_sot + "\n" + "Время: " + vib_nach + ":00" + "-" + vib_kon + ":00"
+    bot.send_message(message.from_user.id, text)
+    bot.send_message(message.from_user.id,
+                     text='Укажите дату на которую хотите перенести работы в формате yyyy-mm-dd!(Например: 2024-01-23)')
+    bot.register_next_step_handler(message.message, izm15)
+def izm15(message):
+    global worker1
+    global data_izm1
+    global nach_vrem
+    global kon_vrem
+    global knopki
+    global vib_rabot
+    global vib_sot
+    global new_date
+    global vib_nach
+    global vib_kon
+    new_date.append(message.text)
+    file = open("grafik.json", 'r', encoding="utf-8")
+    grafik = json.load(file)
+    file.close()
+    file = open("grafik.json", 'w', encoding="utf-8")
+    for i in range(int(vib_nach) , int(vib_kon) + 1):
+        del grafik[worker1[0]][data_izm1[0]][str(i)]
+    json.dump(grafik, file, ensure_ascii=False)
+    file.close()
+    file = open("grafik.json", 'r', encoding="utf-8")
+    grafik = json.load(file)
+    file.close()
+    file = open("grafik.json", 'w', encoding="utf-8")
+    for i in range(vib_nach, vib_kon + 1):
+
+    if 'занято':
+        bot.send_message('Выбранная дата занята. Попробуйте указать другую дату.')
+        bot.register_next_step_handler(message, izm15)
+    else:
+        if new_date[0] not in grafik[worker1[0]]:
+            grafik[worker1[0]][new_date[0]] = {}
+        for hour in range(int(vib_nach), int(vib_kon) + 1):
+            grafik[worker1[0]][new_date[0]][str(hour)] = [
+                {
+                    "date": new_date[0],
+                    "work": vib_rabot,
+                    "worker": vib_sot,
+                    "start": str(nach_vrem[0]),
+                    "end": str(kon_vrem[0])
+                }
+            ]
+        json.dump(grafik, file, ensure_ascii=False)
+        bot.send_message(message.from_user.id,
+                         text='Перенесение работ завершено.')
+        data_izm1 = []
+        worker1 = []
+        nach_vrem = []
+        kon_vrem = []
+        knopki = []
+        new_date = []
 # Получение текстовых сообщений от бота
 @bot.message_handler(content_types=['text'])
 # Функция для получения сообщений от пользователя
@@ -429,6 +555,8 @@ def callback_worker(call):
     global perevod
     global vse_rabot_graf
     global worker11
+    global knopki
+    global vib_knop
     if call.data == 'Добавление работы':
         bot.send_message(call.from_user.id, text='Напишите название работы!')
         bot.register_next_step_handler(call.message, add_work)
@@ -476,6 +604,12 @@ def callback_worker(call):
             worker1.append(vse_rabot_graf[i])
             bot.send_message(call.from_user.id, text='Выберите дату в формате yyyy-mm-dd(Например: 2024-05-16).')
             bot.register_next_step_handler(call.message, data_izm11)
+    for i in range(len(knopki)):
+        if call.data == knopki[i]:
+            vib_knop.append(knopki[i])
+            izm14(call)
+            break
+
     for i in range(len(vse_rabot_graf)):
         if call.data == vse_rabot_graf[i]:
             worker1.append(vse_rabot_graf[i])
@@ -526,8 +660,8 @@ def callback_worker(call):
 
     if call.data.startswith('endtime'):
         time = call.data.split('_')[1]
-        for i in range(len(cvobod_time1)):
-            if time == cvobod_time1[i]:
+        for i in range(len(cvobod_time2)):
+            if time == cvobod_time2[i]:
                 kon_rabot.append(time)
                 break
         otvetsv(call)
@@ -539,4 +673,5 @@ def callback_worker(call):
     if call.data == 'Вручную':
         bot.send_message(call.from_user.id, text="Выберите время начала работы:(Например,11:00)")
         bot.register_next_step_handler(call.message, naach)
+
 bot.polling(non_stop=True, interval=0)
